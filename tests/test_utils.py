@@ -1,4 +1,4 @@
-﻿from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents
+from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents, parsePrice
 
 
 def test_capitalize_lowercase_word():
@@ -116,3 +116,40 @@ def test_sort_students_does_not_mutate_input():
 def test_sort_students_defaults_to_ascending_order():
     assert [s["grade"] for s in sortStudents(student_sample(), "grade")] == [70, 80, 90]
 
+
+
+
+def test_parse_price_from_dot_decimal():
+    assert parsePrice("12.99") == 12.99
+
+
+def test_parse_price_from_comma_decimal():
+    assert parsePrice("12,99") == 12.99
+
+
+def test_parse_price_with_currency_suffix():
+    assert parsePrice("12.99 ?") == 12.99
+
+
+def test_parse_price_with_currency_prefix():
+    assert parsePrice("?12.99") == 12.99
+
+
+def test_parse_price_from_number():
+    assert parsePrice(12.99) == 12.99
+
+
+def test_parse_price_from_gratuit():
+    assert parsePrice("gratuit") == 0
+
+
+def test_parse_price_rejects_invalid_text():
+    assert parsePrice("abc") is None
+
+
+def test_parse_price_rejects_negative_amount():
+    assert parsePrice("-5.00") is None
+
+
+def test_parse_price_rejects_none():
+    assert parsePrice(None) is None
