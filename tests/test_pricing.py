@@ -1,6 +1,6 @@
 import pytest
 
-from src.pricing import PricingError, calculateDeliveryFee, applyPromoCode, calculateSurge
+from src.pricing import PricingError, calculateDeliveryFee, applyPromoCode, calculateSurge, calculateOrderTotal
 
 
 def test_delivery_fee_two_kilometers():
@@ -161,3 +161,67 @@ def test_surge_opens_at_ten_am():
 def test_surge_rejects_unknown_day():
     with pytest.raises(PricingError, match="weekday"):
         calculateSurge(15, "funday")
+
+
+
+from src.pricing import calculateOrderTotal
+
+
+PIZZA_ORDER = [{"name": "Pizza", "price": 12.5, "quantity": 2}]
+
+
+def test_order_total_calculates_subtotal_delivery_and_total():
+    result = calculateOrderTotal(PIZZA_ORDER, 5, 2, hour=15, dayOfWeek="tuesday")
+    assert result == {"subtotal": 25, "discount": 0, "deliveryFee": 3, "surge": 1.0, "total": 28}
+
+
+def test_order_total_applies_percentage_promo():
+    result = calculateOrderTotal(PIZZA_ORDER, 5, 2, "BIENVENUE20", 15, "tuesday")
+    assert result["discount"] == 5
+    assert result["total"] == 23
+
+
+def test_order_total_applies_friday_surge_only_to_delivery():
+    result = calculateOrderTotal(PIZZA_ORDER, 5, 2, hour=20, dayOfWeek="friday")
+    assert result["subtotal"] == 25
+    assert result["deliveryFee"] == 5.4
+    assert result["total"] == 30.4
+
+
+def test_order_total_rejects_empty_cart():
+    with pytest.raises(PricingError, match="non-empty"):
+        calculateOrderTotal([], 5, 2)
+
+
+def test_order_total_rejects_zero_quantity():
+    with pytest.raises(PricingError, match="quantity"):
+        calculateOrderTotal([{"name": "Pizza", "price": 12.5, "quantity": 0}], 5, 2)
+
+
+def test_order_total_rejects_negative_item_price():
+    with pytest.raises(PricingError, match="price"):
+        calculateOrderTotal([{"name": "Pizza", "price": -1, "quantity": 1}], 5, 2)
+
+
+def test_order_total_rejects_closed_hours():
+    with pytest.raises(PricingError, match="closed"):
+        calculateOrderTotal(PIZZA_ORDER, 5, 2, hour=23, dayOfWeek="tuesday")
+
+
+def test_order_total_rejects_out_of_zone_distance():
+    with pytest.raises(PricingError, match="10 km"):
+        calculateOrderTotal(PIZZA_ORDER, 15, 2)
+
+
+def test_order_total_has_all_required_fields():
+    result = calculateOrderTotal(PIZZA_ORDER, 5, 2)
+    assert set(result) == {"subtotal", "discount", "deliveryFee", "surge", "total"}
+
+
+def test_order_total_without_promo_has_zero_discount():
+    assert calculateOrderTotal(PIZZA_ORDER, 5, 2)["discount"] == 0
+
+
+def test_order_total_rejects_expired_promo():
+    with pytest.raises(PricingError, match="expired"):
+        calculateOrderTotal(PIZZA_ORDER, 5, 2, "EXPIRE")
