@@ -1,6 +1,15 @@
 import pytest
 
-from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents, parsePrice, groupBy, calculateDiscount
+from src.utils import (
+    calculateAverage,
+    calculateDiscount,
+    capitalize,
+    clamp,
+    groupBy,
+    parsePrice,
+    slugify,
+    sortStudents,
+)
 
 
 def test_capitalize_lowercase_word():
@@ -75,7 +84,6 @@ def test_clamp_supports_equal_bounds():
     assert clamp(0, 0, 0) == 0
 
 
-
 def student_sample():
     return [
         {"name": "Charlie", "grade": 70, "age": 22},
@@ -119,8 +127,6 @@ def test_sort_students_defaults_to_ascending_order():
     assert [s["grade"] for s in sortStudents(student_sample(), "grade")] == [70, 80, 90]
 
 
-
-
 def test_parse_price_from_dot_decimal():
     assert parsePrice("12.99") == 12.99
 
@@ -157,7 +163,6 @@ def test_parse_price_rejects_none():
     assert parsePrice(None) is None
 
 
-
 def test_group_by_creates_multiple_groups():
     people = [{"name": "Alice", "role": "dev"}, {"name": "Bob", "role": "design"}, {"name": "Charlie", "role": "dev"}]
     result = groupBy(people, "role")
@@ -179,7 +184,6 @@ def test_group_by_supports_a_single_group():
 
 def test_group_by_puts_missing_keys_in_none_group():
     assert groupBy([{"name": "Alice"}], "role") == {None: [{"name": "Alice"}]}
-
 
 
 def test_discount_applies_percentage_rule():

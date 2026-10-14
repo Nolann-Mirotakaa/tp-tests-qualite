@@ -1,6 +1,14 @@
+from datetime import date
+
 import pytest
 
-from src.pricing import PricingError, calculateDeliveryFee, applyPromoCode, calculateSurge, calculateOrderTotal
+from src.pricing import (
+    PricingError,
+    applyPromoCode,
+    calculateDeliveryFee,
+    calculateOrderTotal,
+    calculateSurge,
+)
 
 
 def test_delivery_fee_two_kilometers():
@@ -43,12 +51,6 @@ def test_delivery_fee_allows_zero_distance():
 
 def test_delivery_fee_does_not_surcharge_exactly_five_kilograms():
     assert calculateDeliveryFee(3, 5) == 2.0
-
-
-
-from datetime import date
-
-from src.pricing import applyPromoCode
 
 
 PROMOS = [
@@ -117,7 +119,6 @@ def test_promo_rejects_negative_subtotal():
         applyPromoCode(-1, "", PROMOS, today=date(2025, 1, 1))
 
 
-
 def test_surge_is_normal_on_tuesday_afternoon():
     assert calculateSurge(15, "tuesday") == 1.0
 
@@ -161,10 +162,6 @@ def test_surge_opens_at_ten_am():
 def test_surge_rejects_unknown_day():
     with pytest.raises(PricingError, match="weekday"):
         calculateSurge(15, "funday")
-
-
-
-from src.pricing import calculateOrderTotal
 
 
 PIZZA_ORDER = [{"name": "Pizza", "price": 12.5, "quantity": 2}]

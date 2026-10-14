@@ -34,7 +34,6 @@ def clamp(value, minimum, maximum):
     return max(minimum, min(value, maximum))
 
 
-
 def sortStudents(students, sortBy, order="asc"):
     if not students:
         return []
@@ -45,7 +44,6 @@ def sortStudents(students, sortBy, order="asc"):
     if order not in ("asc", "desc"):
         raise ValueError("order must be asc or desc")
     return sorted(students, key=lambda student: student[sortBy], reverse=order == "desc")
-
 
 
 def parsePrice(value):
@@ -66,7 +64,6 @@ def parsePrice(value):
     return round(float(normalized.replace(",", ".")), 2)
 
 
-
 def groupBy(items, key):
     if items is None or items == []:
         return {}
@@ -79,7 +76,6 @@ def groupBy(items, key):
         value = item.get(key)
         grouped.setdefault(value, []).append(item)
     return grouped
-
 
 
 def calculateDiscount(price, discountRules):
@@ -105,7 +101,10 @@ def calculateDiscount(price, discountRules):
             buy = rule.get("buy")
             free = rule.get("free")
             item_price = rule.get("itemPrice")
-            if not all(isinstance(number, int) and not isinstance(number, bool) and number > 0 for number in (buy, free)):
+            if not all(
+                isinstance(number, int) and not isinstance(number, bool) and number > 0
+                for number in (buy, free)
+            ):
                 raise ValueError("buy and free must be positive integers")
             if isinstance(item_price, bool) or not isinstance(item_price, (int, float)) or item_price <= 0:
                 raise ValueError("itemPrice must be positive")
