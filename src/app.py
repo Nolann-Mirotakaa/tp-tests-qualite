@@ -2,7 +2,11 @@ from flask import Flask
 
 
 def create_app():
-    return Flask(__name__)
+    application = Flask(__name__)
+    from src.routes import orders_bp
+
+    application.register_blueprint(orders_bp)
+    return application
 
 
 app = create_app()
