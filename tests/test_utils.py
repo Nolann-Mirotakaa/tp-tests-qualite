@@ -1,4 +1,4 @@
-from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents, parsePrice
+from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents, parsePrice, groupBy
 
 
 def test_capitalize_lowercase_word():
@@ -153,3 +153,27 @@ def test_parse_price_rejects_negative_amount():
 
 def test_parse_price_rejects_none():
     assert parsePrice(None) is None
+
+
+
+def test_group_by_creates_multiple_groups():
+    people = [{"name": "Alice", "role": "dev"}, {"name": "Bob", "role": "design"}, {"name": "Charlie", "role": "dev"}]
+    result = groupBy(people, "role")
+    assert [person["name"] for person in result["dev"]] == ["Alice", "Charlie"]
+    assert [person["name"] for person in result["design"]] == ["Bob"]
+
+
+def test_group_by_returns_empty_dict_for_empty_input():
+    assert groupBy([], "role") == {}
+
+
+def test_group_by_returns_empty_dict_for_none():
+    assert groupBy(None, "role") == {}
+
+
+def test_group_by_supports_a_single_group():
+    assert groupBy([{"role": "dev"}], "role") == {"dev": [{"role": "dev"}]}
+
+
+def test_group_by_puts_missing_keys_in_none_group():
+    assert groupBy([{"name": "Alice"}], "role") == {None: [{"name": "Alice"}]}
