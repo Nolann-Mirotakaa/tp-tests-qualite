@@ -45,3 +45,22 @@ def sortStudents(students, sortBy, order="asc"):
     if order not in ("asc", "desc"):
         raise ValueError("order must be asc or desc")
     return sorted(students, key=lambda student: student[sortBy], reverse=order == "desc")
+
+
+
+def parsePrice(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        if not math.isfinite(value) or value < 0:
+            return None
+        return round(float(value), 2)
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    if normalized == "gratuit":
+        return 0
+    normalized = normalized.replace("?", "").replace(" ", "")
+    if normalized.startswith("-") or not re.fullmatch(r"\d+(?:[.,]\d{1,2})?", normalized):
+        return None
+    return round(float(normalized.replace(",", ".")), 2)
