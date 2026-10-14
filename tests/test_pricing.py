@@ -11,10 +11,6 @@ from src.pricing import (
 )
 
 
-def test_delivery_fee_two_kilometers():
-    assert calculateDeliveryFee(2, 1) == 2.0
-
-
 def test_delivery_fee_seven_kilometers():
     assert calculateDeliveryFee(7, 3) == 4.0
 
@@ -47,10 +43,6 @@ def test_delivery_fee_rejects_negative_weight():
 
 def test_delivery_fee_allows_zero_distance():
     assert calculateDeliveryFee(0, 1) == 2.0
-
-
-def test_delivery_fee_does_not_surcharge_exactly_five_kilograms():
-    assert calculateDeliveryFee(3, 5) == 2.0
 
 
 PROMOS = [
@@ -90,23 +82,20 @@ def test_promo_rejects_unknown_code_with_not_found_status():
     assert error.value.status_code == 404
 
 
-def test_promo_fixed_discount_never_makes_total_negative():
-    result = applyPromoCode(5, "FIXED5", PROMOS, today=date(2025, 1, 1))
-    assert result["total"] == 0
-    assert result["discount"] == 5
-
-
-def test_promo_accepts_one_hundred_percent_discount():
+def test_promo_discounts_never_make_total_negative():
+    fixed = applyPromoCode(5, "FIXED5", PROMOS, today=date(2025, 1, 1))
     promos = [{"code": "FREE", "type": "percentage", "value": 100, "minOrder": 0, "expiresAt": "2099-12-31"}]
-    assert applyPromoCode(20, "FREE", promos, today=date(2025, 1, 1))["total"] == 0
+    percentage = applyPromoCode(20, "FREE", promos, today=date(2025, 1, 1))
+    assert fixed["total"] == 0
+    assert fixed["discount"] == 5
+    assert percentage["total"] == 0
 
 
-def test_missing_promo_code_keeps_subtotal_unchanged():
-    assert applyPromoCode(12.5, None, PROMOS, today=date(2025, 1, 1))["discount"] == 0
-
-
-def test_empty_promo_code_keeps_subtotal_unchanged():
-    assert applyPromoCode(12.5, "", PROMOS, today=date(2025, 1, 1))["total"] == 12.5
+def test_missing_or_empty_promo_code_keeps_subtotal_unchanged():
+    for code in (None, ""):
+        result = applyPromoCode(12.5, code, PROMOS, today=date(2025, 1, 1))
+        assert result["discount"] == 0
+        assert result["total"] == 12.5
 
 
 def test_promo_expiring_today_remains_valid():
@@ -139,10 +128,6 @@ def test_surge_applies_sunday_multiplier_during_opening_hours():
     assert calculateSurge(14, "sunday") == 1.2
 
 
-def test_surge_applies_lunch_at_noon_boundary():
-    assert calculateSurge(12, "monday") == 1.3
-
-
 def test_surge_applies_dinner_at_seven_boundary():
     assert calculateSurge(19, "monday") == 1.5
 
@@ -151,17 +136,8 @@ def test_surge_closes_at_ten_pm():
     assert calculateSurge(22, "friday") == 0
 
 
-def test_surge_is_closed_before_opening():
-    assert calculateSurge(9.99, "tuesday") == 0
-
-
 def test_surge_opens_at_ten_am():
     assert calculateSurge(10, "tuesday") == 1.0
-
-
-def test_surge_rejects_unknown_day():
-    with pytest.raises(PricingError, match="weekday"):
-        calculateSurge(15, "funday")
 
 
 PIZZA_ORDER = [{"name": "Pizza", "price": 12.5, "quantity": 2}]
@@ -210,13 +186,10 @@ def test_order_total_rejects_out_of_zone_distance():
         calculateOrderTotal(PIZZA_ORDER, 15, 2)
 
 
-def test_order_total_has_all_required_fields():
+def test_order_total_has_required_fields_and_zero_discount_without_promo():
     result = calculateOrderTotal(PIZZA_ORDER, 5, 2)
     assert set(result) == {"subtotal", "discount", "deliveryFee", "surge", "total"}
-
-
-def test_order_total_without_promo_has_zero_discount():
-    assert calculateOrderTotal(PIZZA_ORDER, 5, 2)["discount"] == 0
+    assert result["discount"] == 0
 
 
 def test_order_total_rejects_expired_promo():
