@@ -60,11 +60,8 @@ def test_password_reports_missing_special_character():
     assert "at least one special character" in isValidPassword("NoSpecial1here")["errors"]
 
 
-def test_password_rejects_empty_string():
+def test_password_rejects_empty_string_and_none():
     assert isValidPassword("")["valid"] is False
-
-
-def test_password_rejects_none():
     assert isValidPassword(None)["valid"] is False
 
 
