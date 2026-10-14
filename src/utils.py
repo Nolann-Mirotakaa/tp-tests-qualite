@@ -64,3 +64,18 @@ def parsePrice(value):
     if normalized.startswith("-") or not re.fullmatch(r"\d+(?:[.,]\d{1,2})?", normalized):
         return None
     return round(float(normalized.replace(",", ".")), 2)
+
+
+
+def groupBy(items, key):
+    if items is None or items == []:
+        return {}
+    if not isinstance(items, list):
+        raise ValueError("items must be a list or None")
+    grouped = {}
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValueError("each item must be a dictionary")
+        value = item.get(key)
+        grouped.setdefault(value, []).append(item)
+    return grouped
