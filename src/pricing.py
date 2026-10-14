@@ -26,7 +26,6 @@ def calculateDeliveryFee(distance, weight):
     return round(fee, 2)
 
 
-
 def applyPromoCode(subtotal, promoCode, promoCodes, today=None):
     from datetime import date
 
@@ -65,7 +64,6 @@ def applyPromoCode(subtotal, promoCode, promoCodes, today=None):
     return {"subtotal": subtotal, "discount": round(subtotal - total, 2), "total": total}
 
 
-
 def calculateSurge(hour, dayOfWeek):
     hour = _finite_number(hour, "hour")
     if not 0 <= hour <= 24:
@@ -88,7 +86,6 @@ def calculateSurge(hour, dayOfWeek):
     return 1.0
 
 
-
 DEFAULT_PROMO_CODES = [
     {"code": "BIENVENUE20", "type": "percentage", "value": 20, "minOrder": 15, "expiresAt": "2099-12-31"},
     {"code": "FIXE5", "type": "fixed", "value": 5, "minOrder": 10, "expiresAt": "2099-12-31"},
@@ -96,7 +93,10 @@ DEFAULT_PROMO_CODES = [
 ]
 
 
-def calculateOrderTotal(items, distance, weight, promoCode=None, hour=15, dayOfWeek="tuesday", promoCodes=None, today=None):
+def calculateOrderTotal(
+    items, distance, weight, promoCode=None, hour=15,
+    dayOfWeek="tuesday", promoCodes=None, today=None
+):
     if not isinstance(items, list) or not items:
         raise PricingError("items must be a non-empty list")
     subtotal = 0.0
