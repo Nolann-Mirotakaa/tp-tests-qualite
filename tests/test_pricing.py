@@ -1,6 +1,6 @@
 import pytest
 
-from src.pricing import PricingError, calculateDeliveryFee, applyPromoCode
+from src.pricing import PricingError, calculateDeliveryFee, applyPromoCode, calculateSurge
 
 
 def test_delivery_fee_two_kilometers():
@@ -115,3 +115,49 @@ def test_promo_expiring_today_remains_valid():
 def test_promo_rejects_negative_subtotal():
     with pytest.raises(PricingError, match="non-negative"):
         applyPromoCode(-1, "", PROMOS, today=date(2025, 1, 1))
+
+
+
+def test_surge_is_normal_on_tuesday_afternoon():
+    assert calculateSurge(15, "tuesday") == 1.0
+
+
+def test_surge_applies_lunch_multiplier():
+    assert calculateSurge(12.5, "wednesday") == 1.3
+
+
+def test_surge_applies_weekday_dinner_multiplier():
+    assert calculateSurge(20, "thursday") == 1.5
+
+
+def test_surge_applies_friday_evening_multiplier():
+    assert calculateSurge(21, "friday") == 1.8
+
+
+def test_surge_applies_sunday_multiplier_during_opening_hours():
+    assert calculateSurge(14, "sunday") == 1.2
+
+
+def test_surge_applies_lunch_at_noon_boundary():
+    assert calculateSurge(12, "monday") == 1.3
+
+
+def test_surge_applies_dinner_at_seven_boundary():
+    assert calculateSurge(19, "monday") == 1.5
+
+
+def test_surge_closes_at_ten_pm():
+    assert calculateSurge(22, "friday") == 0
+
+
+def test_surge_is_closed_before_opening():
+    assert calculateSurge(9.99, "tuesday") == 0
+
+
+def test_surge_opens_at_ten_am():
+    assert calculateSurge(10, "tuesday") == 1.0
+
+
+def test_surge_rejects_unknown_day():
+    with pytest.raises(PricingError, match="weekday"):
+        calculateSurge(15, "funday")

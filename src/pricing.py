@@ -63,3 +63,26 @@ def applyPromoCode(subtotal, promoCode, promoCodes, today=None):
         raise PricingError("promo type must be percentage or fixed")
     total = round(max(0, discounted), 2)
     return {"subtotal": subtotal, "discount": round(subtotal - total, 2), "total": total}
+
+
+
+def calculateSurge(hour, dayOfWeek):
+    hour = _finite_number(hour, "hour")
+    if not 0 <= hour <= 24:
+        raise PricingError("hour must be between 0 and 24")
+    day = dayOfWeek.casefold() if isinstance(dayOfWeek, str) else ""
+    days = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
+    if day not in days:
+        raise PricingError("dayOfWeek must be a weekday name")
+    if hour < 10 or hour >= 22:
+        return 0
+    if day == "sunday":
+        return 1.2
+    if day in {"friday", "saturday"} and 19 <= hour < 22:
+        return 1.8
+    if day in {"monday", "tuesday", "wednesday", "thursday"}:
+        if 12 <= hour < 13.5:
+            return 1.3
+        if 19 <= hour < 22:
+            return 1.5
+    return 1.0
