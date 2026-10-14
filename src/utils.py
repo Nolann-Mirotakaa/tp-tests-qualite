@@ -32,3 +32,16 @@ def clamp(value, minimum, maximum):
     if minimum > maximum:
         raise ValueError("minimum must be less than or equal to maximum")
     return max(minimum, min(value, maximum))
+
+
+
+def sortStudents(students, sortBy, order="asc"):
+    if not students:
+        return []
+    if not isinstance(students, list):
+        raise ValueError("students must be a list or None")
+    if sortBy not in ("name", "grade", "age"):
+        raise ValueError("sortBy must be name, grade, or age")
+    if order not in ("asc", "desc"):
+        raise ValueError("order must be asc or desc")
+    return sorted(students, key=lambda student: student[sortBy], reverse=order == "desc")
