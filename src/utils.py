@@ -79,3 +79,40 @@ def groupBy(items, key):
         value = item.get(key)
         grouped.setdefault(value, []).append(item)
     return grouped
+
+
+
+def calculateDiscount(price, discountRules):
+    if isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price < 0:
+        raise ValueError("price must be a finite non-negative number")
+    if not isinstance(discountRules, list):
+        raise ValueError("discountRules must be a list")
+    remaining = float(price)
+    for rule in discountRules:
+        if not isinstance(rule, dict):
+            raise ValueError("each discount rule must be a dictionary")
+        rule_type = rule.get("type")
+        value = rule.get("value")
+        if rule_type == "percentage":
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+                raise ValueError("percentage value must be non-negative")
+            remaining *= max(0, 1 - value / 100)
+        elif rule_type == "fixed":
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+                raise ValueError("fixed value must be non-negative")
+            remaining -= value
+        elif rule_type == "buyXgetY":
+            buy = rule.get("buy")
+            free = rule.get("free")
+            item_price = rule.get("itemPrice")
+            if not all(isinstance(number, int) and not isinstance(number, bool) and number > 0 for number in (buy, free)):
+                raise ValueError("buy and free must be positive integers")
+            if isinstance(item_price, bool) or not isinstance(item_price, (int, float)) or item_price <= 0:
+                raise ValueError("itemPrice must be positive")
+            item_count = int(remaining // item_price)
+            free_count = item_count // (buy + free) * free
+            remaining -= free_count * item_price
+        else:
+            raise ValueError("unknown discount rule")
+        remaining = max(0, remaining)
+    return round(remaining, 2)

@@ -1,4 +1,6 @@
-from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents, parsePrice, groupBy
+import pytest
+
+from src.utils import calculateAverage, capitalize, clamp, slugify, sortStudents, parsePrice, groupBy, calculateDiscount
 
 
 def test_capitalize_lowercase_word():
@@ -177,3 +179,40 @@ def test_group_by_supports_a_single_group():
 
 def test_group_by_puts_missing_keys_in_none_group():
     assert groupBy([{"name": "Alice"}], "role") == {None: [{"name": "Alice"}]}
+
+
+
+def test_discount_applies_percentage_rule():
+    assert calculateDiscount(100, [{"type": "percentage", "value": 10}]) == 90
+
+
+def test_discount_applies_fixed_rule():
+    assert calculateDiscount(30, [{"type": "fixed", "value": 5}]) == 25
+
+
+def test_discount_applies_rules_in_order():
+    rules = [{"type": "percentage", "value": 10}, {"type": "fixed", "value": 5}]
+    assert calculateDiscount(100, rules) == 85
+
+
+def test_discount_supports_buy_three_get_one():
+    rule = {"type": "buyXgetY", "buy": 3, "free": 1, "itemPrice": 10}
+    assert calculateDiscount(40, [rule]) == 30
+
+
+def test_discount_never_returns_a_negative_amount():
+    assert calculateDiscount(5, [{"type": "fixed", "value": 10}]) == 0
+
+
+def test_discount_allows_a_one_hundred_percent_discount():
+    assert calculateDiscount(50, [{"type": "percentage", "value": 100}]) == 0
+
+
+def test_discount_rejects_negative_price():
+    with pytest.raises(ValueError):
+        calculateDiscount(-1, [])
+
+
+def test_discount_rejects_unknown_rule():
+    with pytest.raises(ValueError):
+        calculateDiscount(10, [{"type": "unknown", "value": 1}])
