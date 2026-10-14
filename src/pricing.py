@@ -86,3 +86,49 @@ def calculateSurge(hour, dayOfWeek):
         if 19 <= hour < 22:
             return 1.5
     return 1.0
+
+
+
+DEFAULT_PROMO_CODES = [
+    {"code": "BIENVENUE20", "type": "percentage", "value": 20, "minOrder": 15, "expiresAt": "2099-12-31"},
+    {"code": "FIXE5", "type": "fixed", "value": 5, "minOrder": 10, "expiresAt": "2099-12-31"},
+    {"code": "EXPIRE", "type": "percentage", "value": 20, "minOrder": 0, "expiresAt": "2020-01-01"},
+]
+
+
+def calculateOrderTotal(items, distance, weight, promoCode=None, hour=15, dayOfWeek="tuesday", promoCodes=None, today=None):
+    if not isinstance(items, list) or not items:
+        raise PricingError("items must be a non-empty list")
+    subtotal = 0.0
+    for item in items:
+        if not isinstance(item, dict):
+            raise PricingError("each item must be an object")
+        price = _finite_number(item.get("price"), "item price")
+        quantity = item.get("quantity")
+        if price < 0:
+            raise PricingError("item price must be non-negative")
+        if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity <= 0:
+            raise PricingError("item quantity must be a positive integer")
+        subtotal += price * quantity
+    subtotal = round(subtotal, 2)
+    promo_result = applyPromoCode(
+        subtotal,
+        promoCode,
+        DEFAULT_PROMO_CODES if promoCodes is None else promoCodes,
+        today=today,
+    )
+    delivery_fee = calculateDeliveryFee(distance, weight)
+    if delivery_fee is None:
+        raise PricingError("delivery distance exceeds 10 km")
+    surge = calculateSurge(hour, dayOfWeek)
+    if surge == 0:
+        raise PricingError("delivery service is closed")
+    adjusted_delivery = round(delivery_fee * surge, 2)
+    total = round(promo_result["total"] + adjusted_delivery, 2)
+    return {
+        "subtotal": subtotal,
+        "discount": promo_result["discount"],
+        "deliveryFee": adjusted_delivery,
+        "surge": surge,
+        "total": total,
+    }
