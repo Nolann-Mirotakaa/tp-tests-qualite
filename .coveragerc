@@ -1,0 +1,6 @@
+[run]
+source = src
+omit = src/server.py
+
+[report]
+fail_under = 80
